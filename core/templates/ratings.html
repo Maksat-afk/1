@@ -1,22 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Рейтинги{% endblock %}
-{% block content %}
-<h2>Рейтинги участников</h2>
 
-{% for user in users %}
-    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;">
-        <h3>{{ user.username }} ({{ user.get_role_display }})</h3>
-        <p><strong>Средняя оценка:</strong> {{ user.avg_rating|default:"Нет оценок" }}</p>
-        <ul>
-            {% for review in user.received_reviews.all %}
-                <li>
-                    <strong>{{ review.author.username }}</strong>: 
-                    Оценка: {{ review.rating }} — {{ review.comment }}
-                </li>
-            {% empty %}
-                <li>Пока нет отзывов.</li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endfor %}
+{% block title %}Рейтинги{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Рейтинги участников</h2>
+
+    {% for user in users %}
+    {% if user.role != 'admin' and not user.is_superuser %}
+            <div class="card">
+                <h3>{{ user.username }} ({{ user.get_role_display }})</h3>
+                <p><strong>Средняя оценка:</strong> {{ user.avg_rating|default:"Нет оценок" }}</p>
+                <ul>
+                    {% for review in user.received_reviews.all %}
+                        <li>
+                            <strong>{{ review.author.username }}</strong>: 
+                            Оценка: {{ review.rating }} — {{ review.comment }}
+                        </li>
+                    {% empty %}
+                        <li>Пока нет отзывов.</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'report_user' %}">
+                    <button class="btn btn-warning">Пожаловаться</button>
+                </a>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
 {% endblock %}

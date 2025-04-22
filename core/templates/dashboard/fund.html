@@ -1,66 +1,73 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Личный кабинет фонда</h2>
-<a href="{% url 'create_task' %}"><button>Создать задание</button></a>
+<div class="container">
+    <h2>Личный кабинет фонда</h2>
 
-<a href="{% url 'leave_review' %}">
-    <button>Оценить участника</button>
-</a>
+    <a href="{% url 'create_task' %}">
+        <button>Создать задание</button>
+    </a>
 
-<h3>Ваши задания:</h3>
-{% for task in tasks %}
-    <div style="border: 1px solid #ccc; margin-bottom: 20px; padding: 10px;">
-        <h4>{{ task.title }}</h4>
-        <p>{{ task.description }}</p>
-        <p><strong>Приняли волонтёры:</strong></p>
-        <ul>
-            {% for v in task.volunteers.all %}
-                <li>{{ v.username }}</li>
-            {% empty %}
-                <li>Никто не принял</li>
-            {% endfor %}
-        </ul>
-        <p><strong>Поддержали спонсоры:</strong></p>
-        <ul>
-            {% for s in task.sponsors.all %}
-                <li>{{ s.username }}</li>
-            {% empty %}
-                <li>Никто не поддержал</li>
-            {% endfor %}
-        </ul>
-    </div>
-{% empty %}
-    <p>Вы ещё не создали ни одного задания.</p>
-{% endfor %}
+    <a href="{% url 'leave_review' %}">
+        <button>Оценить участника</button>
+    </a>
 
-<hr>
+    <h3>Ваши задания:</h3>
+    {% for task in tasks %}
+        <div class="card">
+            <h4>{{ task.title }}</h4>
+            <p>{{ task.description }}</p>
 
-<h3>Отзывы о вас:</h3>
-<ul>
-    {% for review in user.received_reviews.all %}
-        <li>
-            <strong>{{ review.author.username }}</strong>: 
-            Оценка: {{ review.rating }} — {{ review.comment }}
-        </li>
+            <p><strong>Приняли волонтёры:</strong></p>
+            <ul>
+                {% for v in task.volunteers.all %}
+                    <li>{{ v.username }}</li>
+                {% empty %}
+                    <li>Никто не принял</li>
+                {% endfor %}
+            </ul>
+
+            <p><strong>Поддержали спонсоры:</strong></p>
+            <ul>
+                {% for s in task.sponsors.all %}
+                    <li>{{ s.username }}</li>
+                {% empty %}
+                    <li>Никто не поддержал</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% empty %}
-        <li>Отзывов пока нет.</li>
+        <p>Вы ещё не создали ни одного задания.</p>
     {% endfor %}
-</ul>
 
-<hr>
+    <hr>
 
-<h3>Ваши отзывы об участниках:</h3>
-<ul>
-    {% for review in user.written_reviews.all %}
-        <li>
-            <strong>{{ review.target.username }}</strong>: 
-            Оценка: {{ review.rating }} — {{ review.comment }}
-            <br>
-            <a href="{% url 'edit_review' review.id %}">✏ Редактировать</a> |
-            <a href="{% url 'delete_review' review.id %}">🗑 Удалить</a>
-        </li>
-    {% empty %}
-        <li>Вы ещё никого не оценили.</li>
-    {% endfor %}
-</ul>
+    <h3>Отзывы о вас:</h3>
+    <ul>
+        {% for review in user.received_reviews.all %}
+            <li>
+                <strong>{{ review.author.username }}</strong>: 
+                Оценка: {{ review.rating }} — {{ review.comment }}
+            </li>
+        {% empty %}
+            <li>Отзывов пока нет.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h3>Ваши отзывы об участниках:</h3>
+    <ul>
+        {% for review in user.written_reviews.all %}
+            <li>
+                <strong>{{ review.target.username }}</strong>: 
+                Оценка: {{ review.rating }} — {{ review.comment }}
+                <span class="review-actions">
+                    <a href="{% url 'edit_review' review.id %}" class="btn edit-btn">✏ Редактировать</a>
+                    <a href="{% url 'delete_review' review.id %}" class="btn delete-btn">🗑 Удалить</a>
+                </span>                                
+        {% empty %}
+            <li>Вы ещё никого не оценили.</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

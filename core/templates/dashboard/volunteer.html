@@ -1,49 +1,43 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Личный кабинет волонтёра</h2>
+<div class="container">
+    <h2>Личный кабинет волонтёра</h2>
 
-<a href="{% url 'leave_review' %}">
-    <button>Оценить участника</button>
-</a>
+    <a href="{% url 'leave_review' %}">
+        <button>Оценить участника</button>
+    </a>
 
-<h3>Принятые задания:</h3>
-{% for task in user.accepted_tasks.all %}
-    <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
-        <h4>{{ task.title }}</h4>
-        <p>{{ task.description }}</p>
-    </div>
-{% empty %}
-    <p>Вы ещё не приняли ни одного задания.</p>
-{% endfor %}
-
-<hr>
-
-<h3>Отзывы о вас:</h3>
-<ul>
-    {% for review in user.received_reviews.all %}
-        <li>
-            <strong>{{ review.author.username }}</strong>: 
-            Оценка: {{ review.rating }} — {{ review.comment }}
-        </li>
+    <h3>Принятые задания:</h3>
+    {% for task in user.accepted_tasks.all %}
+        <div class="card">
+            <h4>{{ task.title }}</h4>
+            <p>{{ task.description }}</p>
+        </div>
     {% empty %}
-        <li>Отзывов пока нет.</li>
+        <p>Вы ещё не приняли ни одного задания.</p>
     {% endfor %}
-</ul>
 
-<hr>
+    <h3>Отзывы о вас:</h3>
+    <ul>
+        {% for review in user.received_reviews.all %}
+            <li><strong>{{ review.author.username }}</strong>: Оценка {{ review.rating }} — {{ review.comment }}</li>
+        {% empty %}
+            <li>Отзывов пока нет.</li>
+        {% endfor %}
+    </ul>
 
-<h3>Ваши отзывы об участниках:</h3>
-<ul>
-    {% for review in user.written_reviews.all %}
-        <li>
-            <strong>{{ review.target.username }}</strong>: 
-            Оценка: {{ review.rating }} — {{ review.comment }}
-            <br>
-            <a href="{% url 'edit_review' review.id %}">✏ Редактировать</a> |
-            <a href="{% url 'delete_review' review.id %}">🗑 Удалить</a>
-        </li>
-    {% empty %}
-        <li>Вы ещё никого не оценили.</li>
-    {% endfor %}
-</ul>
+    <h3>Ваши отзывы об участниках:</h3>
+    <ul>
+        {% for review in user.written_reviews.all %}
+            <li>
+                <strong>{{ review.target.username }}</strong>: Оценка {{ review.rating }} — {{ review.comment }}
+                <br>
+                <a href="{% url 'edit_review' review.id %}">✏ Редактировать</a> |
+                <a href="{% url 'delete_review' review.id %}">🗑 Удалить</a>
+            </li>
+        {% empty %}
+            <li>Вы ещё никого не оценили.</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

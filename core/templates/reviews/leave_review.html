@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+{% block title %}Оценка участника{% endblock %}
+
 {% block content %}
-<h2>Оценить участника</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Отправить отзыв</button>
-</form>
+<div class="form-container">
+    <h2>Оценить участника</h2>
+    <div class="card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Отправить отзыв</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

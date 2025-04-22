@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Task, Review
+from .models import User, Task, Review, Category, Report
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -26,3 +26,9 @@ class TaskAdmin(admin.ModelAdmin):
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('author', 'target', 'rating', 'created_at')
     search_fields = ('author__username', 'target__username', 'comment')
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+admin.site.register(Report)

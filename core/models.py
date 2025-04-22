@@ -5,12 +5,19 @@ from django.core.validators import MinValueValidator
 
 class User(AbstractUser):
     ROLE_CHOICES = [
+        ('admin', 'Администратор'),
         ('volunteer', 'Волонтёр'),
         ('fund', 'Фонд'),
         ('sponsor', 'Спонсор'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
 class Task(models.Model):
     title = models.CharField(max_length=255)
     image = models.ImageField(upload_to='task_images/', blank=True, null=True)
@@ -24,6 +31,7 @@ class Task(models.Model):
     sponsors = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='supported_tasks', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_completed = models.BooleanField(default=False)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -37,3 +45,9 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.author.username} → {self.target.username} ({self.rating})"
+
+class Report(models.Model):
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_reports')
+    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_reports')
+    reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

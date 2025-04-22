@@ -2,15 +2,70 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
 from django.contrib.auth import login
-from .models import Task, User, Review
+from .models import Task, User, Review, Category
 from .forms import TaskForm
 from .forms import ReviewForm
+from .forms import ReportForm
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
+from django.core.paginator import Paginator
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        email = form.cleaned_data["email"]
+        try:
+            user = User.objects.get(email=email)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = self.request.build_absolute_uri(
+                reverse("password_reset_confirm", kwargs={"uidb64": uid, "token": token})
+            )
+            self.request.session["reset_link"] = reset_url
+        except User.DoesNotExist:
+            self.request.session["reset_link"] = None
+        return super().form_valid(form)
 
 def index(request):
-    tasks = Task.objects.all().order_by('-created_at')
-    return render(request, 'index.html', {'tasks': tasks})
+    tasks = Task.objects.filter(is_completed=False).order_by('-created_at')
+
+    category_id = request.GET.get('category')
+    if category_id:
+        tasks = tasks.filter(category_id=category_id)
+
+    paginator = Paginator(tasks, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    categories = Category.objects.all()
+
+    top_volunteers = User.objects.filter(role='volunteer') \
+        .annotate(num_accepted=Count('accepted_tasks')) \
+        .order_by('-num_accepted')[:3]
+
+    top_funds = User.objects.filter(role='fund') \
+        .annotate(num_tasks=Count('fund_tasks')) \
+        .order_by('-num_tasks')[:3]
+
+    top_sponsors = User.objects.filter(role='sponsor') \
+        .annotate(num_supported=Count('supported_tasks')) \
+        .order_by('-num_supported')[:3]
+
+    return render(request, 'index.html', {
+        'tasks': page_obj,
+        'categories': categories,
+        'top_volunteers': top_volunteers,
+        'top_funds': top_funds,
+        'top_sponsors': top_sponsors,
+    })
 
 def register(request):
     if request.method == 'POST':
@@ -114,3 +169,16 @@ def delete_review(request, review_id):
         return redirect('dashboard')
 
     return render(request, 'reviews/delete_review.html', {'review': review})
+
+@login_required
+def report_user(request):
+    if request.method == 'POST':
+        form = ReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.reporter = request.user
+            report.save()
+            return redirect('dashboard')
+    else:
+        form = ReportForm()
+    return render(request, 'report_user.html', {'form': form})

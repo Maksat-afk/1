@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: Positive-Impact-Project-0
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn pip_site.wsgi:application"
+    autoDeploy: true
+
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: pip_site.settings
+      - key: SECRET_KEY
+        value: django-insecure-y)ztqiaeo7&z1waa#799i=^0_=dx=2*nf5ma^3@s*kx@yzucp^
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: pip-site.onrender.com

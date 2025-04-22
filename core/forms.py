@@ -3,9 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import User
 from .models import Task
 from .models import Review
+from .models import Report
 
 class CustomUserCreationForm(UserCreationForm):
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES, label="Выберите роль")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        allowed_roles = [choice for choice in User.ROLE_CHOICES if choice[0] != 'admin']
+        self.fields['role'] = forms.ChoiceField(choices=allowed_roles, label="Выберите роль")
 
     class Meta:
         model = User
@@ -14,8 +19,11 @@ class CustomUserCreationForm(UserCreationForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'image', 'description', 'volunteers_required',
-                  'expectations_volunteer', 'expectations_sponsor', 'contacts']
+        fields = [
+            'title', 'image', 'description',
+            'expectations_volunteer', 'expectations_sponsor',
+            'volunteers_required', 'contacts', 'category',
+        ]
 
 class ReviewForm(forms.ModelForm):
     class Meta:
@@ -43,3 +51,11 @@ class ReviewForm(forms.ModelForm):
             fund_ids = tasks.values_list('fund', flat=True)
             volunteer_ids = tasks.values_list('volunteers__id', flat=True)
             self.fields['target'].queryset = User.objects.filter(id__in=list(fund_ids) + list(volunteer_ids)).exclude(id=user.id)
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ['target_user', 'reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }

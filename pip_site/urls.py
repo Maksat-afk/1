@@ -1,9 +1,11 @@
+from core.views import CustomPasswordResetView
 from django.contrib.auth import views as auth_views
 from django.contrib import admin
 from django.urls import path
 from core import views as core_views
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import report_user
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,6 +21,11 @@ urlpatterns = [
     path('ratings/', core_views.ratings_view, name='ratings'),
     path('edit-review/<int:review_id>/', core_views.edit_review, name='edit_review'),
     path('delete-review/<int:review_id>/', core_views.delete_review, name='delete_review'),
+    path('report/', report_user, name='report_user'),
+    path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

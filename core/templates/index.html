@@ -1,34 +1,67 @@
 {% extends 'base.html' %}
-
 {% block title %}Главная | PIP{% endblock %}
 
 {% block content %}
-<h2>Добро пожаловать!</h2>
-<p>Positive Impact Project — платформа, объединяющая фонды, волонтёров и спонсоров.</p>
+<div class="hero">
+    <h1>Positive Impact Project</h1>
+</div>
 
-<section>
-    <h3>Последние достижения</h3>
+<div class="container">
+    <h3>Самые активные участники</h3>
+
+    <h4>Волонтёры:</h4>
     <ul>
-        <li>Фонд "Доброе дело" завершил проект по озеленению.</li>
-        <li>Волонтёр Алия выполнила 5 заданий!</li>
-        <li>Спонсор "IT Solutions" предоставил технику для онлайн-курсов.</li>
+        {% for user in top_volunteers %}
+            <li>{{ user.username }} — {{ user.accepted_tasks.count }} заданий</li>
+        {% empty %}
+            <li>Нет данных</li>
+        {% endfor %}
     </ul>
-</section>
 
-<section>
+    <h4>Фонды:</h4>
+    <ul>
+        {% for user in top_funds %}
+            <li>{{ user.username }} — {{ user.fund_tasks.count }} заданий</li>
+        {% empty %}
+            <li>Нет данных</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Спонсоры:</h4>
+    <ul>
+        {% for user in top_sponsors %}
+            <li>{{ user.username }} — {{ user.supported_tasks.count }} заданий</li>
+        {% empty %}
+            <li>Нет данных</li>
+        {% endfor %}
+    </ul>
+
     <h3>Последние задания</h3>
+
+    <form method="get" class="mb-3">
+      <label for="category-select"><strong>Фильтр по категории:</strong></label>
+      <select name="category" id="category-select" onchange="this.form.submit()">
+        <option value="">Все категории</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+            {{ cat.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
     {% for task in tasks %}
-    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;">
+    <div class="card my-3 p-3">
         <h4>{{ task.title }}</h4>
+        <p><strong>Категория:</strong> {{ task.category.name }}</p>
         {% if task.image %}
-            <img src="{{ task.image.url }}" alt="Фото" style="max-width: 300px;">
+            <img src="{{ task.image.url }}" alt="Фото" class="img-fluid mb-2">
         {% endif %}
         <p><strong>Описание:</strong> {{ task.description }}</p>
         <p><strong>Ожидания от волонтёра:</strong> {{ task.expectations_volunteer }}</p>
         <p><strong>Ожидания от спонсора:</strong> {{ task.expectations_sponsor }}</p>
         <p><strong>Нужно волонтёров:</strong> {{ task.volunteers_required }}</p>
-        
-        {# Кнопка для волонтёров #}
+
         {% if user.is_authenticated and user.role == 'volunteer' %}
             {% if user not in task.volunteers.all %}
                 <form method="post" action="{% url 'accept_task' task.id %}">
@@ -40,7 +73,6 @@
             {% endif %}
         {% endif %}
 
-        {# Кнопка для спонсоров #}
         {% if user.is_authenticated and user.role == 'sponsor' %}
             {% if user not in task.sponsors.all %}
                 <form method="post" action="{% url 'support_task' task.id %}">
@@ -58,6 +90,24 @@
             <p><em>Зарегистрируйтесь, чтобы увидеть контактные данные</em></p>
         {% endif %}
     </div>
-{% endfor %}
-</section>
+    {% endfor %}
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if tasks.has_previous %}
+                <a href="?page=1">&laquo; первая</a>
+                <a href="?page={{ tasks.previous_page_number }}">предыдущая</a>
+            {% endif %}
+
+            <span class="current">
+                Страница {{ tasks.number }} из {{ tasks.paginator.num_pages }}.
+            </span>
+
+            {% if tasks.has_next %}
+                <a href="?page={{ tasks.next_page_number }}">следующая</a>
+                <a href="?page={{ tasks.paginator.num_pages }}">последняя &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
 {% endblock %}
